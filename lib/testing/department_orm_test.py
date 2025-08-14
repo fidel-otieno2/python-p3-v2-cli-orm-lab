@@ -1,13 +1,12 @@
 from models.__init__ import CONN, CURSOR
 from models.department import Department
-import pytest
+import unittest
 
 
-class TestDepartment:
+class TestDepartment(unittest.TestCase):
     '''Class Department in department.py'''
 
-    @pytest.fixture(autouse=True)
-    def drop_tables(self):
+    def setUp(self):
         '''drop tables prior to each test.'''
 
         CURSOR.execute("DROP TABLE IF EXISTS employees")

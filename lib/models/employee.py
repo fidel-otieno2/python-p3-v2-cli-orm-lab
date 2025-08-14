@@ -10,53 +10,69 @@ class Employee:
 
     def __init__(self, name, job_title, department_id, id=None):
         self.id = id
-        self.name = name
-        self.job_title = job_title
-        self.department_id = department_id
+        self._validate_and_set_name(name)
+        self._validate_and_set_job_title(job_title)
+        self._validate_and_set_department_id(department_id)
 
     def __repr__(self):
         return (
-            f"<Employee {self.id}: {self.name}, {self.job_title}, " +
-            f"Department ID: {self.department_id}>"
+            "<Employee {}: {}, {}, Department ID: {}>".format(
+                self.id, self.name, self.job_title, self.department_id)
         )
 
     @property
     def name(self):
         return self._name
 
-    @name.setter
-    def name(self, name):
-        if isinstance(name, str) and len(name):
-            self._name = name
-        else:
-            raise ValueError(
-                "Name must be a non-empty string"
-            )
-
-    @property
-    def job_title(self):
-        return self._job_title
-
-    @job_title.setter
-    def job_title(self, job_title):
-        if isinstance(job_title, str) and len(job_title):
-            self._job_title = job_title
-        else:
-            raise ValueError(
-                "job_title must be a non-empty string"
-            )
-
-    @property
-    def department_id(self):
-        return self._department_id
-
-    @department_id.setter
-    def department_id(self, department_id):
+    def _validate_and_set_name(self, name):
+        try:
+            string_types = (str, unicode)
+        except NameError:
+            string_types = (str,)
+        if not isinstance(name, string_types):
+            raise ValueError("Name must be a non-empty string")
+        if len(name) == 0:
+            raise ValueError("Name must be a non-empty string")
+        self._name = name
+    
+    def _validate_and_set_job_title(self, job_title):
+        try:
+            string_types = (str, unicode)
+        except NameError:
+            string_types = (str,)
+        if not isinstance(job_title, string_types):
+            raise ValueError("job_title must be a non-empty string")
+        if len(job_title) == 0:
+            raise ValueError("job_title must be a non-empty string")
+        self._job_title = job_title
+    
+    def _validate_and_set_department_id(self, department_id):
         if type(department_id) is int and Department.find_by_id(department_id):
             self._department_id = department_id
         else:
-            raise ValueError(
-                "department_id must reference a department in the database")
+            raise ValueError("department_id must reference a department in the database")
+    
+    def __setattr__(self, attr_name, value):
+        if attr_name == 'name' and hasattr(self, '_name'):
+            self._validate_and_set_name(value)
+        elif attr_name == 'job_title' and hasattr(self, '_job_title'):
+            self._validate_and_set_job_title(value)
+        elif attr_name == 'department_id' and hasattr(self, '_department_id'):
+            self._validate_and_set_department_id(value)
+        else:
+            self.__dict__[attr_name] = value
+    
+    @property
+    def name(self):
+        return self._name
+    
+    @property
+    def job_title(self):
+        return self._job_title
+    
+    @property
+    def department_id(self):
+        return self._department_id
 
     @classmethod
     def create_table(cls):
@@ -94,7 +110,7 @@ class Employee:
         CONN.commit()
 
         self.id = CURSOR.lastrowid
-        type(self).all[self.id] = self
+        self.__class__.all[self.id] = self
 
     def update(self):
         """Update the table row corresponding to the current Employee instance."""
@@ -120,7 +136,7 @@ class Employee:
         CONN.commit()
 
         # Delete the dictionary entry using id as the key
-        del type(self).all[self.id]
+        del self.__class__.all[self.id]
 
         # Set the id to None
         self.id = None

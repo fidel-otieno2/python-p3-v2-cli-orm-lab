@@ -9,37 +9,49 @@ class Department:
 
     def __init__(self, name, location, id=None):
         self.id = id
-        self.name = name
-        self.location = location
+        self._validate_and_set_name(name)
+        self._validate_and_set_location(location)
 
     def __repr__(self):
-        return f"<Department {self.id}: {self.name}, {self.location}>"
+        return "<Department {}: {}, {}>".format(self.id, self.name, self.location)
 
+    def _validate_and_set_name(self, name):
+        try:
+            string_types = (str, unicode)
+        except NameError:
+            string_types = (str,)
+        if not isinstance(name, string_types):
+            raise ValueError("Name must be a non-empty string")
+        if len(name) == 0:
+            raise ValueError("Name must be a non-empty string")
+        self._name = name
+    
+    def _validate_and_set_location(self, location):
+        try:
+            string_types = (str, unicode)
+        except NameError:
+            string_types = (str,)
+        if not isinstance(location, string_types):
+            raise ValueError("Location must be a non-empty string")
+        if len(location) == 0:
+            raise ValueError("Location must be a non-empty string")
+        self._location = location
+    
+    def __setattr__(self, attr_name, value):
+        if attr_name == 'name' and hasattr(self, '_name'):
+            self._validate_and_set_name(value)
+        elif attr_name == 'location' and hasattr(self, '_location'):
+            self._validate_and_set_location(value)
+        else:
+            self.__dict__[attr_name] = value
+    
     @property
     def name(self):
         return self._name
-
-    @name.setter
-    def name(self, name):
-        if isinstance(name, str) and len(name):
-            self._name = name
-        else:
-            raise ValueError(
-                "Name must be a non-empty string"
-            )
-
+    
     @property
     def location(self):
         return self._location
-
-    @location.setter
-    def location(self, location):
-        if isinstance(location, str) and len(location):
-            self._location = location
-        else:
-            raise ValueError(
-                "Location must be a non-empty string"
-            )
 
     @classmethod
     def create_table(cls):
@@ -75,7 +87,7 @@ class Department:
         CONN.commit()
 
         self.id = CURSOR.lastrowid
-        type(self).all[self.id] = self
+        self.__class__.all[self.id] = self
 
     @classmethod
     def create(cls, name, location):
@@ -107,7 +119,7 @@ class Department:
         CONN.commit()
 
         # Delete the dictionary entry using id as the key
-        del type(self).all[self.id]
+        del self.__class__.all[self.id]
 
         # Set the id to None
         self.id = None

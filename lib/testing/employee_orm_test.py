@@ -1,15 +1,13 @@
 from models.__init__ import CONN, CURSOR
 from models.employee import Employee
 from models.department import Department
-from faker import Faker
-import pytest
+import unittest
 
 
-class TestEmployee:
+class TestEmployee(unittest.TestCase):
     '''Class Employee in employee.py'''
 
-    @pytest.fixture(autouse=True)
-    def drop_tables(self):
+    def setUp(self):
         '''drop tables prior to each test.'''
 
         CURSOR.execute("DROP TABLE IF EXISTS employees")
@@ -217,10 +215,9 @@ class TestEmployee:
         department = Department("Payroll", "Building A, 5th Floor")
         department.save()
         Employee.create_table()
-        faker = Faker()
-        employee1 = Employee.create(faker.name(), "Manager", department.id)
+        employee1 = Employee.create("John Doe", "Manager", department.id)
         employee2 = Employee.create(
-            faker.name(), "Web Developer", department.id)
+            "Jane Smith", "Web Developer", department.id)
 
         employee = Employee.find_by_name(employee1.name)
         assert (
@@ -244,10 +241,9 @@ class TestEmployee:
         department = Department("Payroll", "Building A, 5th Floor")
         department.save()
         Employee.create_table()
-        faker = Faker()
-        employee1 = Employee.create(faker.name(), "Manager", department.id)
+        employee1 = Employee.create("Alice Johnson", "Manager", department.id)
         employee2 = Employee.create(
-            faker.name(), "Web Developer", department.id)
+            "Bob Wilson", "Web Developer", department.id)
 
         employee = Employee.find_by_id(employee1.id)
         assert (
